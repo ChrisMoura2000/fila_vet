@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin - Fila</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f8fafc;
+            padding: 1rem;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+        h1 {
+            color: #2d6a4f;
+            font-size: 2rem;
+        }
+        .logout {
+            background: #e2e8f0;
+            color: #475569;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+        .card {
+            background: white;
+            border-radius: 24px;
+            padding: 1.5rem;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+            border: 1px solid #e2e8f0;
+            margin-bottom: 1rem;
+        }
+        .fila-item {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 1rem;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        .fila-item:last-child {
+            border-bottom: none;
+        }
+        .posicao {
+            width: 2.5rem;
+            height: 2.5rem;
+            background: #2d6a4f;
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+        }
+        .info {
+            flex: 1;
+        }
+        .pet {
+            font-weight: 600;
+            color: #1e293b;
+        }
+        .dono {
+            color: #64748b;
+            font-size: 0.9rem;
+        }
+        .hora {
+            color: #94a3b8;
+            font-size: 0.8rem;
+        }
+        .remover {
+            background: #b91c1c;
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.9rem;
+        }
+        .remover:hover {
+            background: #991b1b;
+        }
+        .empty-state {
+            text-align: center;
+            padding: 3rem;
+            color: #94a3b8;
+        }
+        .empty-state::before {
+            content: "🐕";
+            display: block;
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            opacity: 0.5;
+        }
+        .toast {
+            position: fixed;
+            bottom: 2rem;
+            left: 50%;
+            transform: translateX(-50%) translateY(100px);
+            background: #2d6a4f;
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border-radius: 40px;
+            opacity: 0;
+            transition: all 0.3s;
+            z-index: 1000;
+        }
+        .toast.show {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🏥 Admin</h1>
+            <button class="logout" onclick="sair()">Sair</button>
+        </div>
+
+        <div class="card">
+            <div id="listaFila"></div>
+        </div>
+    </div>
+
+    <div id="toast" class="toast"></div>
+
+    <script>
+        const API_ADMIN = '../backend/admin.php';
+
+        async function carregarFila() {
+            try {
+                const response = await fetch(API_ADMIN);
+                
+                if (response.status === 401) {
+                    window.location.href = 'index.html';
+                    return;
+                }
+                
+                const fila = await response.json();
+                const container = document.getElementById('listaFila');
+                
+                if (!fila || fila.length === 0) {
+                    container.innerHTML = '<div class="empty-state">Nenhum pet na fila</div>';
+                    return;
+                }
+
+                container.innerHTML = fila.map((item, index) => `
+                    <div class="fila-item">
+                        <div class="posicao">${index + 1}</div>
+                        <div class="info">
+                            <div class="pet">${item.nome_pet}</div>
+                            <div class="dono">Tutor: ${item.nome_dono}</div>
+                            <div class="hora">${item.hora}</div>
+                        </div>
+                        <button class="remover" onclick="removerDaFila(${item.id})">✓ Atender</button>
+                    </div>
+                `).join('');
+                
+            } catch (error) {
+                mostrarToast('Erro ao carregar fila', true);
+            }
+        }
+
+        async function removerDaFila(id) {
+            if (!confirm('Confirmar atendimento?')) return;
+            
+            try {
+                const response = await fetch(`${API_ADMIN}?id=${id}`, {
+                    method: 'DELETE'
+                });
+                
+                if (response.ok) {
+                    mostrarToast('Pet atendido com sucesso');
+                    carregarFila();
+                }
+            } catch (error) {
+                mostrarToast('Erro ao remover', true);
+            }
+        }
+
+        function sair() {
+            window.location.href = 'index.html';
+        }
+
+        function mostrarToast(msg, erro = false) {
+            const toast = document.getElementById('toast');
+            toast.textContent = msg;
+            toast.style.background = erro ? '#b91c1c' : '#2d6a4f';
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 3000);
+        }
+
+        // Atualizar a cada 5 segundos
+        carregarFila();
+        setInterval(carregarFila, 5000);
+    </script>
+</body>
+</html>

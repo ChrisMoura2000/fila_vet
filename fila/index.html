@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+    <title>Fila Veterinária</title>
+    <style>
+        /* RESET E VARIÁVEIS */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg: #f8fafc;
+            --surface: #ffffff;
+            --primary: #2d6a4f;
+            --primary-light: #40916c;
+            --text: #1e293b;
+            --text-light: #64748b;
+            --border: #e2e8f0;
+            --shadow: 0 4px 6px -1px rgb(0 0 0 / 0.05);
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.5;
+            min-height: 100vh;
+            padding: 1rem;
+        }
+
+        /* LAYOUT MOBILE FIRST */
+        .container {
+            max-width: 480px;
+            margin: 0 auto;
+        }
+
+        /* CABEÇALHO MINIMALISTA */
+        .header {
+            margin-bottom: 2rem;
+            text-align: left;
+        }
+
+        .header h1 {
+            font-size: 1.75rem;
+            font-weight: 500;
+            color: var(--primary);
+            letter-spacing: -0.02em;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .header h1::before {
+            content: "🏥";
+            font-size: 1.75rem;
+            opacity: 0.9;
+        }
+
+        .subtitle {
+            color: var(--text-light);
+            font-size: 0.95rem;
+            margin-top: 0.25rem;
+        }
+
+        /* FORMULÁRIO */
+        .form-card {
+            background: var(--surface);
+            border-radius: 20px;
+            padding: 1.5rem;
+            box-shadow: var(--shadow);
+            margin-bottom: 2rem;
+            border: 1px solid var(--border);
+        }
+
+        .input-group {
+            margin-bottom: 1.25rem;
+        }
+
+        .input-group label {
+            display: block;
+            font-size: 0.85rem;
+            font-weight: 500;
+            color: var(--text-light);
+            margin-bottom: 0.4rem;
+            text-transform: uppercase;
+            letter-spacing: 0.02em;
+        }
+
+        .input-group input {
+            width: 100%;
+            padding: 0.9rem 0;
+            font-size: 1rem;
+            background: transparent;
+            border: none;
+            border-bottom: 1.5px solid var(--border);
+            transition: border-color 0.2s;
+            border-radius: 0;
+            /* -webkit-appearance: none; */
+        }
+
+        .input-group input:focus {
+            outline: none;
+            border-bottom-color: var(--primary);
+        }
+
+        .input-group input::placeholder {
+            color: #cbd5e1;
+            font-weight: 300;
+        }
+
+        button {
+            width: 100%;
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 1rem;
+            font-size: 1rem;
+            font-weight: 500;
+            border-radius: 40px;
+            cursor: pointer;
+            transition: background 0.2s;
+            -webkit-tap-highlight-color: transparent;
+            margin-top: 0.5rem;
+        }
+
+        button:active {
+            background: var(--primary-light);
+            transform: scale(0.98);
+        }
+
+        /* LISTA DA FILA */
+        .fila-container {
+            background: var(--surface);
+            border-radius: 20px;
+            padding: 1.5rem;
+            box-shadow: var(--shadow);
+            border: 1px solid var(--border);
+        }
+
+        .fila-title {
+            font-size: 1.1rem;
+            font-weight: 500;
+            color: var(--text-light);
+            margin-bottom: 1.25rem;
+            text-transform: uppercase;
+            letter-spacing: 0.03em;
+        }
+
+        .fila-lista {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .fila-item {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 0.75rem 0;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .fila-item:last-child {
+            border-bottom: none;
+        }
+
+        .fila-posicao {
+            width: 2.2rem;
+            height: 2.2rem;
+            background: var(--primary);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 500;
+            font-size: 0.9rem;
+            flex-shrink: 0;
+        }
+
+        .fila-info {
+            flex: 1;
+        }
+
+        .fila-pet {
+            font-weight: 500;
+            color: var(--text);
+            font-size: 1rem;
+        }
+
+        .fila-dono {
+            font-size: 0.85rem;
+            color: var(--text-light);
+        }
+
+        .fila-hora {
+            font-size: 0.75rem;
+            color: var(--text-light);
+            opacity: 0.7;
+            margin-top: 0.2rem;
+        }
+
+        /* ESTADO VAZIO */
+        .empty-state {
+            text-align: center;
+            padding: 2rem 0;
+            color: var(--text-light);
+            font-size: 0.95rem;
+        }
+
+        .empty-state::before {
+            content: "🐕";
+            display: block;
+            font-size: 2rem;
+            margin-bottom: 0.75rem;
+            opacity: 0.5;
+        }
+
+        /* TOAST DE CONFIRMAÇÃO */
+        .toast {
+            position: fixed;
+            bottom: 2rem;
+            left: 50%;
+            transform: translateX(-50%) translateY(100px);
+            background: var(--primary);
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border-radius: 40px;
+            font-size: 0.9rem;
+            box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1);
+            opacity: 0;
+            transition: all 0.3s;
+            z-index: 1000;
+            white-space: nowrap;
+            max-width: 90vw;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .toast.show {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+        }
+    </style>
+</head>
+<body>
+    <main class="container">
+        <div class="header">
+            <h1>Clínica Vet</h1>
+            <div class="subtitle">Atendimento por ordem de chegada</div>
+        </div>
+
+        <div class="form-card">
+            <div class="input-group">
+                <label for="pet">PET</label>
+                <input type="text" id="pet" placeholder="Nome do animal" autocomplete="off">
+            </div>
+            <div class="input-group">
+                <label for="dono">TUTOR</label>
+                <input type="text" id="dono" placeholder="Seu nome" autocomplete="off">
+            </div>
+            <button onclick="entrarNaFila()">Entrar na fila</button>
+        </div>
+
+        <div class="fila-container">
+            <div class="fila-title">🐾 AGUARDANDO</div>
+            <div id="listaFila" class="fila-lista">
+                <div class="empty-state">Nenhum pet aguardando</div>
+            </div>
+        </div>
+    </main>
+
+    <div id="toast" class="toast"></div>
+
+    <script>
+        // URL da API (ajuste se necessário)
+        const API_URL = 'backend/fila.php';
+
+        // Carregar fila ao iniciar
+        document.addEventListener('DOMContentLoaded', carregarFila);
+
+        // Função para mostrar mensagem temporária
+        function mostrarToast(mensagem, erro = false) {
+            const toast = document.getElementById('toast');
+            toast.textContent = mensagem;
+            toast.style.background = erro ? '#b91c1c' : '#2d6a4f';
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 3000);
+        }
+
+        // Carregar fila do banco
+        async function carregarFila() {
+            try {
+                const response = await fetch(API_URL);
+                if (!response.ok) throw new Error('Erro ao carregar');
+                const fila = await response.json();
+                atualizarLista(fila);
+            } catch (error) {
+                console.log(response)
+                console.error('Erro:', error);
+                mostrarToast('Erro ao conectar com servidor', true);
+            }
+        }
+
+        // Atualizar lista na tela
+        function atualizarLista(fila) {
+            const container = document.getElementById('listaFila');
+            
+            if (!fila || fila.length === 0) {
+                container.innerHTML = '<div class="empty-state">Nenhum pet aguardando</div>';
+                return;
+            }
+
+            container.innerHTML = fila.map((item, index) => `
+                <div class="fila-item">
+                    <div class="fila-posicao">${index + 1}</div>
+                    <div class="fila-info">
+                        <div class="fila-pet">${item.nome_pet}</div>
+                        <div class="fila-dono">${item.nome_dono}</div>
+                        <div class="fila-hora">${item.hora}</div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Entrar na fila
+        async function entrarNaFila() {
+            const pet = document.getElementById('pet').value.trim();
+            const dono = document.getElementById('dono').value.trim();
+
+            if (!pet || !dono) {
+                mostrarToast('Preencha todos os campos', true);
+                return;
+            }
+
+            try {
+                const response = await fetch(API_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ nome_pet: pet, nome_dono: dono })
+                });
+
+                const data = await response.json();
+
+                if (!response.ok || data.erro) {
+                    throw new Error(data.erro || 'Erro ao entrar');
+                }
+
+                // Limpar campos
+                document.getElementById('pet').value = '';
+                document.getElementById('dono').value = '';
+                
+                // Mostrar confirmação
+                mostrarToast(`${pet} entrou na fila`);
+                
+                // Recarregar fila
+                await carregarFila();
+                
+            } catch (error) {
+                console.error('Erro:', error);
+                mostrarToast(error.message || 'Erro ao entrar', true);
+            }
+        }
+
+        // Atalho Enter nos campos
+        document.getElementById('pet').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') document.getElementById('dono').focus();
+        });
+        
+        document.getElementById('dono').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') entrarNaFila();
+        });
+    </script>
+</body>
+</html>
