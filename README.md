@@ -1,2 +1,2 @@
 # Fila Online
-Aplicação web para fila online de uma clínica veterinario
+Aplicação web para fila online de uma clínica veterinaria
